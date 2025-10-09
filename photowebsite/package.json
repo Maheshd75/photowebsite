@@ -10,7 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.50.0",
+    "@reduxjs/toolkit": "^2.9.0",
     "@tailwindcss/vite": "^4.1.13",
+    "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "cmdk": "^1.1.1",
     "dotenv": "^17.2.3",
@@ -23,6 +26,7 @@
     "react-day-picker": "^9.11.0",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.63.0",
+    "react-redux": "^9.2.0",
     "react-resizable-panels": "^3.0.6",
     "react-router-dom": "^7.9.3",
     "recharts": "^3.2.1",
