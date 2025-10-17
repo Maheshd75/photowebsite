@@ -5,12 +5,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback } from './ui/avatar.jsx';
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { UserButton } from '@clerk/clerk-react';
+import { useClerk, UserButton } from '@clerk/clerk-react';
 import { useSelector } from 'react-redux';
 
 export function Header({user,   onLoginClick, onLogout, onProfileClick, onOrdersClick }) {
   const {cartItems} = useSelector(state=>state.cart)
   const navigate = useNavigate()
+  const {openSignIn} = useClerk()
+  console.log(user)
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const cartCount = cartItems.reduce((sum,item)=>sum + item.quantity,0)
@@ -56,13 +58,17 @@ export function Header({user,   onLoginClick, onLogout, onProfileClick, onOrders
           {/* Right Section - User & Cart */}
           <div className="flex items-center space-x-4">
             {/* User Authentication */}
-            {user.user ? (
-              <UserButton/>
-            ) : (
-              <Button variant="ghost" size="sm" onClick={onLoginClick} className="hidden md:flex">
+            { !user ? (
+              <Button variant="ghost" size="sm" onClick={openSignIn} className="hidden md:flex">
                 <User className="h-4 w-4 mr-2" />
                 Login
               </Button>
+            ) : (
+              <UserButton>
+                <UserButton.MenuItems>
+                  <UserButton.Action label='Orders' labelIcon={<ShoppingCart className="mr-2 h-4 w-4" />} onClick={()=>navigate('/orders')}/>
+                </UserButton.MenuItems>
+              </UserButton>
             )}
 
             {/* Cart Button */}

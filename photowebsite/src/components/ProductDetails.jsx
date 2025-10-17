@@ -39,6 +39,7 @@ export function ProductDetails() {
         const {data} =await api.post('/api/products/productData',{productId})
         if(data.success){
           setProduct(data.product)
+          console.log(data.product)
         }
       
       } catch (error) {
@@ -59,7 +60,7 @@ export function ProductDetails() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Back Button */}
-      <Button 
+      <Button onClick={()=> navigate(-1)}
         variant="ghost" 
         
         className="mb-6 px-0"
@@ -74,7 +75,7 @@ export function ProductDetails() {
           {/* Main Image */}
           <div className="aspect-square overflow-hidden rounded-lg bg-muted">
             <ImageWithFallback
-              src={images[currentImageIndex]}
+              src={product.image_urls}
               alt={product.name}
               className="w-full h-full object-cover"
             />

@@ -8,6 +8,7 @@ import { functions, inngest } from "./inngest/index.js"
 import {serve} from "inngest/express"
 import userRouter from "./Routes/UserRoutes.js"
 import orderRouter from "./Routes/OrderRoutes.js"
+import { clerkMiddleware } from '@clerk/express'
 
 const app = express()
 
@@ -15,6 +16,7 @@ await connectDB()
 
 app.use(express.json());
 app.use(cors())
+app.use(clerkMiddleware())
 
 app.get("/",(req,res)=>{
     res.send("server running")

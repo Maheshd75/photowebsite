@@ -16,14 +16,15 @@ import Home from './Pages/Home.jsx';
 import { AdminPanel } from './Pages/AdminPanel.jsx';
 import { useDispatch } from 'react-redux';
 import { getProductsData } from './features/productSlice.js';
-import { useUser } from '@clerk/clerk-react';
+import { useClerk, useUser } from '@clerk/clerk-react';
 
 export default function App() {
 
-  const user = useUser()
+  const {user} = useUser()
+  
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  
 
   const dispatch = useDispatch()
 
@@ -38,7 +39,7 @@ export default function App() {
  
   return (
     <div className='min-h-screen bg-background'>
-      <Header user={user} onLoginClick={onLoginClick}/>
+      <Header user={user}/>
       <Routes>
         <Route path='/' element={<Home/>} />
         <Route path='/collections' element={<CategoryPage/>}/>
@@ -49,9 +50,7 @@ export default function App() {
         <Route path='/orders' element={<OrdersPage/>}/>
         <Route path='/admin' element={<AdminPanel/>}/>
       </Routes>
-      {isLoginModalOpen?<LoginModal  isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        />:null}
+      
       <Footer/>
       <Toaster position="bottom-right" />
     
