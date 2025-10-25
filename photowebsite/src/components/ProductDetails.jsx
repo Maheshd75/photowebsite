@@ -12,12 +12,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Checkbox } from './ui/checkbox.js';
 import { getProductsData } from '../features/productSlice.js';
 import api from '../api/axios.js';
-import { addProduct } from '../features/cartSlice.js';
+import { addProduct, addToCart } from '../features/cartSlice.js';
+import { useAuth } from '@clerk/clerk-react';
 
 export function ProductDetails() {
   const {productId} = useParams()
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const {getToken} = useAuth()
+  
   const [product,setProduct] = useState([])
   const [selectedSize, setSelectedSize] = useState();
   const [quantity, setQuantity] = useState(1);
@@ -48,6 +51,13 @@ export function ProductDetails() {
       }
 
     }
+    const addtocart = async ({productId,selectedSize,quantity}) =>{
+      
+      const token = await getToken()
+      dispatch(addToCart({productId,selectedSize,quantity,token}))
+
+    }
+    const updatequantity = async ({productId,quantity}) =>{}
 
     useEffect(()=>{
       productData()
@@ -202,7 +212,7 @@ export function ProductDetails() {
           {/* Action Buttons */}
           <div className="flex gap-3">
             <Button 
-              onClick={()=>dispatch(addProduct({cartItem:product,selectedSize,quantity}))}
+              onClick={()=>addtocart({productId:product._id,selectedSize,quantity})}
               className="flex-1"
               size="lg"
             >

@@ -12,10 +12,9 @@ export function Header({user,   onLoginClick, onLogout, onProfileClick, onOrders
   const {cartItems} = useSelector(state=>state.cart)
   const navigate = useNavigate()
   const {openSignIn} = useClerk()
-  console.log(user)
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const cartCount = cartItems.reduce((sum,item)=>sum + item.quantity,0)
+  const cartCount = cartItems?.reduce((sum,item)=>sum + Number( item.quantity),0)
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b">

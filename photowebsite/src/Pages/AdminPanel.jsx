@@ -155,7 +155,7 @@ export function AdminPanel() {
           </TabsContent>
 
           <TabsContent value="orders">
-            <OrdersManager orders={orders} />
+            <OrdersManager  />
           </TabsContent>
         </Tabs>
       </div>

@@ -2,7 +2,8 @@ import Cart from "../models/Cart.js";
 
 export const getCartData = async(req,res)=>{
     try {
-        const cartItems = await Cart.find()
+        const {userId} = req.auth();
+        const cartItems = await Cart.find({ userId }).populate('productId');
         if(!cartItems){
             return res.json({success:false,message:"Cart is empty"})
         }
@@ -14,8 +15,10 @@ export const getCartData = async(req,res)=>{
 }
 export const addToCart = async(req,res) =>{
 try {
-    const {userId,productId,selectedSize,quantity} = req.body;
+    const {userId} = req.auth();
+    const {productId,selectedSize,quantity} = req.body;
     const cartItemId = `${productId}-${selectedSize}`;
+    
     const existingItem = await Cart.findOne({userId,productId,selectedSize})
 
     if(existingItem){
@@ -38,9 +41,11 @@ try {
 
 export const updateCartQuantity = async(req,res) =>{
     try {
-         const { userId, productId, selectedSize, quantity } = req.body;
-    const item = await CartItem.findOne({ userId, productId, selectedSize });
-    if (!item){
+        const { userId } = req.auth();
+         const { productId,selectedSize, quantity } = req.body;
+    const item = await Cart.findOne({ userId, productId,selectedSize });
+    
+   if (!item){
          return res.status(404).json({success:true, message: 'Item not found' });
     }
     if(quantity === 0){
@@ -50,8 +55,9 @@ export const updateCartQuantity = async(req,res) =>{
 
     item.quantity = quantity;
     await item.save();
+    const items = await Cart.find({userId}).populate('productId')
 
-    res.status(200).json({success:true, message: 'Quantity updated' });
+    res.status(200).json({success:true, message: 'Quantity updated',items });
   } catch (error) {
     res.status(500).json({ success:false,message:"Failed to updated cart item" });
   }
@@ -59,15 +65,18 @@ export const updateCartQuantity = async(req,res) =>{
 }
 export const removeCartItem = async (req,res) =>{
     try {
-        const {userId,productId,selectedSize} = req.body;
+        const {userId} = req.auth();
+        const {productId} = req.body;
         const deletedItem = await Cart.findOneAndDelete({
             userId,
             productId,
-            selectedSize
+            
         })
         if(!deletedItem){
             return res.json({success:false,message:"Cart item not found"})
         }
+        const items = await Cart.find({userId}).populate('productId')
+        res.json({success:true,items})
     } catch (error) {
         res.json({success:false,message:error.message})
         

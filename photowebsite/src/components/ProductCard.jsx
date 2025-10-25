@@ -4,7 +4,7 @@ import { Badge } from './ui/badge.jsx';
 import { Heart, ShoppingCart } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback.jsx';
 import {useDispatch, useSelector} from 'react-redux'
-import { addProduct } from '../features/cartSlice.js';
+import { addProduct, addToCart } from '../features/cartSlice.js';
 import { useNavigate } from 'react-router-dom';
 
 export function ProductCard({ product}) {
@@ -12,6 +12,7 @@ export function ProductCard({ product}) {
   
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  
   const discount = product.originalPrice 
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
@@ -93,7 +94,7 @@ export function ProductCard({ product}) {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => dispatch(addProduct({cartItem:product}))}
+              onClick={() => navigate(`/product/${product._id}`) }
             >
               Add to Cart
             </Button>

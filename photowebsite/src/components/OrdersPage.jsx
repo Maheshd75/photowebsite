@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Package, Clock, CheckCircle, XCircle, Search, Filter, Eye } from 'lucide-react';
+import { ArrowLeft, Package, Clock, CheckCircle, XCircle, Search, Filter, Eye, MapPin } from 'lucide-react';
 import { Button } from './ui/button.jsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card.jsx';
 import { Badge } from './ui/badge.jsx';
@@ -7,13 +7,20 @@ import { Input } from './ui/input.jsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select.jsx';
 import { Separator } from './ui/separator.jsx';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog.jsx';
+import { useSelector } from 'react-redux';
 
 export function OrdersPage({ user, onBack }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  
+  const {orders} = useSelector(state=>state.order)
+  const Ordersdata = orders
+  console.log(orders)
+  
+  
 
   // Mock orders data
-  const mockOrders = user.id === 'guest' ? [] : [
+  const ordersdata =  [
     {
       id: '1',
       orderNumber: 'ORD-2024-001',
@@ -99,19 +106,20 @@ export function OrdersPage({ user, onBack }) {
     }
   };
 
-  const filteredOrders = mockOrders.filter(order => {
-    const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredOrders = Ordersdata.filter(order => {
+    const matchesSearch = order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         order.items.some(item => item.productId.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
-  const OrderDetailsModal = ({ order }) => (
+ console.log(filteredOrders)
+  const OrderDetailsModal = ({ order }) =>  (
+    
     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>Order Details - {order.orderNumber}</DialogTitle>
         <DialogDescription>
-          Placed on {new Date(order.date).toLocaleDateString()}
+          Placed on {new Date(order.createdAt).toLocaleDateString()}
         </DialogDescription>
       </DialogHeader>
       
@@ -137,22 +145,22 @@ export function OrdersPage({ user, onBack }) {
         <div>
           <h4 className="font-medium mb-4">Items Ordered</h4>
           <div className="space-y-4">
-            {order.items.map((item) => (
-              <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg">
+            {order.items.map((item,index) => (
+              <div key={index} className="flex items-center gap-4 p-4 border rounded-lg">
                 <img
-                  src={item.image}
+                  src={item.productId.image_urls}
                   alt={item.name}
                   className="w-16 h-16 object-cover rounded-md"
                 />
                 <div className="flex-1">
-                  <h5 className="font-medium">{item.name}</h5>
-                  {item.size && (
-                    <p className="text-sm text-gray-600">Size: {item.size}</p>
+                  <h5 className="font-medium">{item.productId.name}</h5>
+                  {item.selectedSize && (
+                    <p className="text-sm text-gray-600">Size: {item.selectedSize}</p>
                   )}
                   <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium">${item.price.toFixed(2)}</p>
+                  <p className="font-medium">₹ {item.productId.price}</p>
                 </div>
               </div>
             ))}
@@ -164,21 +172,30 @@ export function OrdersPage({ user, onBack }) {
         {/* Shipping Address */}
         <div>
           <h4 className="font-medium mb-2">Shipping Address</h4>
-          <p className="text-gray-600">{order.shippingAddress}</p>
+          {order.shippingAddress.map((address,index)=>(
+            <>
+            <p key={index} className="text-gray-600">{address.address},{address.apartment},
+              {address.city}-{address.zipCode},{address.state},{address.country}
+            </p>
+          
+          
+          </>
+          ))}
         </div>
+        
 
         <Separator />
 
         {/* Order Total */}
         <div className="flex justify-between items-center">
           <span className="font-medium">Total</span>
-          <span className="font-bold text-lg">${order.total.toFixed(2)}</span>
+          <span className="font-bold text-lg">₹ {order.totalAmount}</span>
         </div>
       </div>
     </DialogContent>
   );
 
-  if (user.id === 'guest') {
+  if (user?.id === 'guest') {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -229,7 +246,7 @@ export function OrdersPage({ user, onBack }) {
             <div className="flex gap-4">
               <div className="text-right">
                 <p className="text-sm text-gray-600">Total Orders</p>
-                <p className="text-2xl font-bold">{mockOrders.length}</p>
+                <p className="text-2xl font-bold">{Ordersdata.length}</p>
               </div>
             </div>
           </div>
@@ -286,7 +303,7 @@ export function OrdersPage({ user, onBack }) {
             </Card>
           ) : (
             filteredOrders.map((order) => (
-              <Card key={order.id} className="hover:shadow-md transition-shadow">
+              <Card key={order._id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex-1">
@@ -301,7 +318,7 @@ export function OrdersPage({ user, onBack }) {
                       </div>
                       
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-600 mb-3">
-                        <span>Placed on {new Date(order.date).toLocaleDateString()}</span>
+                        <span>Placed on {new Date(order.createdAt).toLocaleDateString()}</span>
                         <span className="hidden sm:inline">•</span>
                         <span>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
                         {order.trackingNumber && (
@@ -314,13 +331,13 @@ export function OrdersPage({ user, onBack }) {
                       
                       <div className="flex flex-wrap gap-2">
                         {order.items.slice(0, 3).map((item, index) => (
-                          <div key={item.id} className="flex items-center gap-2 text-sm">
+                          <div key={item._id} className="flex items-center gap-2 text-sm">
                             <img
-                              src={item.image}
-                              alt={item.name}
+                              src={item.productId.image_urls}
+                              alt={item.productId.name}
                               className="w-8 h-8 object-cover rounded"
                             />
-                            <span className="text-gray-700">{item.name}</span>
+                            <span className="text-gray-700">{item.productId.name}</span>
                             {index < Math.min(order.items.length, 3) - 1 && (
                               <span className="text-gray-400">•</span>
                             )}
@@ -336,7 +353,7 @@ export function OrdersPage({ user, onBack }) {
                     
                     <div className="flex items-center justify-between lg:flex-col lg:items-end gap-4">
                       <div className="text-right">
-                        <p className="text-2xl font-bold">${order.total.toFixed(2)}</p>
+                        <p className="text-2xl font-bold">₹ {order.totalAmount}</p>
                       </div>
                       
                       <Dialog>

@@ -9,42 +9,64 @@ const initialState = {
     
 };
 
-export const getCartData = createAsyncThunk('cart/getCartData',async()=>{
-  const {data} =await api.get('/api/cart/get')
+export const getCartData = createAsyncThunk('cart/getCartData',async(token)=>{
+  
+  try{
+  const {data} =await api.get('/api/cart/get',{
+    headers:{Authorization:`Bearer ${token}`}
+  })
+  
   if(data.success){
-    return data
+    console.log(data.cartItems)
+    
+    return data.cartItems
   }else{
-    return null
+    console.log(data)
+    //return null
+  }
+}catch(error){
+    console.log(error.message)
   }
 })
-export const addToCart = createAsyncThunk('cart/addToCart',async({userId,productId,selectedSize,quantity=1})=>{
+export const addToCart = createAsyncThunk('cart/addToCart',async({productId,selectedSize,quantity,token})=>{
   try{
-  const {data} = await api.post('/api/cart/add',{userId,productId,selectedSize,quantity})
+  const {data} = await api.post('/api/cart/add',{productId,selectedSize,quantity},{
+    headers:{Authorization:`Bearer ${token}`}
+  })
   if(data.success){
     console.log(data)
+    
   }
   }catch(error){
     console.error(error.message)
-  }
+  } 
 })
-export const updateCartItem = createAsyncThunk('cart/updateCartItem',async({userId,productId,quantity})=>{
+export const updateCartItem = createAsyncThunk('cart/updateCartItem',async({productId,selectedSize,quantity,token})=>{
   try {
-    const {data} = await api.post('/api/cart/update',{userId,productId,quantity})
+    
+    const {data} = await api.post('/api/cart/update',{productId,selectedSize,quantity},{
+      headers:{Authorization:`Bearer ${token}`}
+    })
     if (data.success){
       console.log(data)
+      return data.items
     }
     console.log(data)
   } catch (error) {
     console.log(error.message)
     
-  }
+  } 
 })
 
-export const removeCartItem = createAsyncThunk('cart/removeCartItem',async({userId,productId})=>{
+export const removeCartItem = createAsyncThunk('cart/removeCartItem',async({productId,token})=>{
   try {
-    const {data} = await api.post('/api/cart/remove',{userId,productId})
+    const {data} = await api.post('/api/cart/remove',{productId,token},{
+      headers:{Authorization:`Bearer ${token}` }
+    })
     if(data.success){
       console.log(data)
+      return data.items
+      
     }
   } catch (error) {
     console.log(error.message)
@@ -106,6 +128,21 @@ const cartSlice = createSlice({
       );
       
     },
+    },
+    extraReducers:(builder)=>{
+      builder.addCase(getCartData.fulfilled,(state,action)=>{
+        state.cartItems=action.payload
+      }),
+      builder.addCase(addToCart.fulfilled,(state,action)=>{
+        state.cartItems=action.payload
+      }),
+      builder.addCase(updateCartItem.fulfilled,(state,action)=>{
+        state.cartItems=action.payload
+      })
+      builder.addCase(removeCartItem.fulfilled,(state,action)=>{
+        state.cartItems= action.payload
+      })
+
     }
 })
 

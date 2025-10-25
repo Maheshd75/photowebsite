@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, Filter, Eye, Package, CheckCircle, Clock, XCircle, Truck, MapPin, Mail, Phone } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -9,14 +9,28 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Separator } from './ui/separator';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import api from '../api/axios';
 
 
 
-export function OrdersManager({ orders }) {
+export function OrdersManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [orders,setOrders] = useState([{
+      id: '1',
+      orderNumber: 'ORD-2024-001',
+      date: '2024-01-15',
+      status: 'delivered',
+      total: 189.97,
+      trackingNumber: 'TRK123456789',
+      shippingAddress: '123 Main Street, New York, NY 10001',
+      items: [
+        { id: '1', name: 'Classic Wooden Frame', image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400', price: 89.99, quantity: 1, size: '8x10' },
+        { id: '2', name: 'Modern Metal Frame', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400', price: 99.98, quantity: 2, size: '5x7' }
+      ]
+    },])
 
   const statusOptions = ['all', 'processing', 'shipped', 'delivered', 'cancelled'];
   
@@ -50,10 +64,30 @@ export function OrdersManager({ orders }) {
     }
   };
 
+  const getOrdersData = async () =>{
+    try {
+      console.log('data')
+      const {data} = await api.get('/api/order/allorders')
+      if(data.success){
+        console.log(data)
+        setOrders(data.allorders)
+        
+      }
+      console.log(data)
+    } catch (error) {
+      console.log(error.message)
+      
+    }
+  }
+  useEffect(()=>{
+    getOrdersData()
+  },[])
+  
+ 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customerEmail.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.items.some(item=>item.productId.name.toLowerCase().includes(searchTerm.toLowerCase()))||
+                         order.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -66,6 +100,8 @@ export function OrdersManager({ orders }) {
   const OrderDetails = () => {
     if (!selectedOrder) return null;
 
+    
+
     return (
       <div className="space-y-6">
         {/* Order Header */}
@@ -73,7 +109,7 @@ export function OrdersManager({ orders }) {
           <div>
             <h3 className="text-lg font-semibold">Order {selectedOrder.id}</h3>
             <p className="text-sm text-muted-foreground">
-              Placed on {new Date(selectedOrder.date).toLocaleDateString()}
+              Placed on {new Date(selectedOrder.createdAt).toLocaleDateString()}
             </p>
           </div>
           <Badge className={getStatusColor(selectedOrder.status)}>
@@ -111,7 +147,7 @@ export function OrdersManager({ orders }) {
             <CardContent>
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <span className="text-sm">{selectedOrder.shippingAddress}</span>
+                <span className="text-sm"></span>
               </div>
             </CardContent>
           </Card>
@@ -128,14 +164,14 @@ export function OrdersManager({ orders }) {
                 <div key={index} className="flex items-center gap-4 p-3 border rounded-lg">
                   <div className="w-16 h-16 rounded-md overflow-hidden bg-muted flex-shrink-0">
                     <ImageWithFallback
-                      src={item.image}
+                      src={item.productId.image_urls}
                       alt={item.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium">{item.name}</h4>
-                    <p className="text-sm text-muted-foreground">{item.material}</p>
+                    <h4 className="font-medium">{item.productId.name}</h4>
+                    <p className="text-sm text-muted-foreground">{item.productId.material}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="secondary" className="text-xs">
                         {item.selectedSize}
@@ -146,8 +182,8 @@ export function OrdersManager({ orders }) {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
-                    <p className="text-sm text-muted-foreground">${item.price.toFixed(2)} each</p>
+                    <p className="font-medium">${(item.productId.price * item.quantity).toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">${item.productId.price} each</p>
                   </div>
                 </div>
               ))}
@@ -164,7 +200,7 @@ export function OrdersManager({ orders }) {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Subtotal</span>
-                <span>${(selectedOrder.total - (selectedOrder.total > 75 ? 0 : 9.99)).toFixed(2)}</span>
+                <span>${(selectedOrder.totalAmount - (selectedOrder.totalAmount > 75 ? 0 : 9.99)).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Shipping</span>
@@ -173,7 +209,7 @@ export function OrdersManager({ orders }) {
               <Separator />
               <div className="flex justify-between font-medium">
                 <span>Total</span>
-                <span>${selectedOrder.total.toFixed(2)}</span>
+                <span>${selectedOrder.totalAmount}</span>
               </div>
             </div>
           </CardContent>
@@ -181,6 +217,7 @@ export function OrdersManager({ orders }) {
       </div>
     );
   };
+    
 
   return (
     <div className="space-y-6">
@@ -239,20 +276,20 @@ export function OrdersManager({ orders }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.map((order) => (
-                  <TableRow key={order.id}>
+                {filteredOrders?.map((order,index) => (
+                  <TableRow key={index}>
                     <TableCell>
-                      <span className="font-mono text-sm">{order.id}</span>
+                      <span className="font-mono text-sm">{order._id}</span>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{order.customerName}</p>
+                        <p className="font-medium">{order.orderNumber}</p>
                         <p className="text-sm text-muted-foreground">{order.customerEmail}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <span className="text-sm">
-                        {new Date(order.date).toLocaleDateString()}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -262,7 +299,7 @@ export function OrdersManager({ orders }) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">${order.total.toFixed(2)}</span>
+                      <span className="font-medium">${order.totalAmount}</span>
                     </TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(order.status)}>

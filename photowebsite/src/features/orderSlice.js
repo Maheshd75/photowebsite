@@ -6,10 +6,18 @@ const initialState = {
     orders:[]
 }
 
-export const order = createAsyncThunk('order/order',async({cartItems,totalAmount})=>{
-    console.log(cartItems,totalAmount)
-    const {data} = await api.post('api/order/order',{cartItems,totalAmount})
-    console.log(data)
+export const getOrdersData = createAsyncThunk('order/order',async(token)=>{
+    try{
+    const {data} = await api.get('api/order/ordersdata',{
+        headers:{Authorization:`Bearer ${token}`}
+    })
+    if(data.success){
+        console.log(data.orders)
+        return data.orders
+    }
+}catch(error){
+    console.log(error.message)
+}
 })
 
 const orderSlice = createSlice({
@@ -17,6 +25,11 @@ const orderSlice = createSlice({
     initialState,
     reducers:{
 
+    },
+    extraReducers:(builder)=>{
+        builder.addCase(getOrdersData.fulfilled,(state,action)=>{
+            state.orders=action.payload
+        })
     }
 })
 

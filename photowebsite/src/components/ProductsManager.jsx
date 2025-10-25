@@ -11,7 +11,7 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
-import { products } from '../data/products';
+
 import ProductForm from './ProductForm';
 import api from '../api/axios';
 
@@ -52,6 +52,7 @@ export function ProductsManager() {
     try {
         const {data} =await api.get('/api/products/get')
         setProducts(data.products)
+        console.log(data.products)
     } catch (error) {
         console.log(error.message)
     }
@@ -136,9 +137,11 @@ export function ProductsManager() {
      }
 
   }
+   
 
   useEffect(()=>{
     getProductsData()
+  
   },[])
 
 

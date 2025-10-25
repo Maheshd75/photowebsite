@@ -16,11 +16,15 @@ import Home from './Pages/Home.jsx';
 import { AdminPanel } from './Pages/AdminPanel.jsx';
 import { useDispatch } from 'react-redux';
 import { getProductsData } from './features/productSlice.js';
-import { useClerk, useUser } from '@clerk/clerk-react';
+import { useAuth, useClerk, useUser } from '@clerk/clerk-react';
+import { fetchUser } from './features/userSlice.js';
+import { getCartData } from './features/cartSlice.js';
+import { getOrdersData } from './features/orderSlice.js';
 
 export default function App() {
 
   const {user} = useUser()
+  const { getToken } = useAuth()
   
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -28,14 +32,21 @@ export default function App() {
 
   const dispatch = useDispatch()
 
-  const onLoginClick = () =>{
-    setIsLoginModalOpen(true)
+  const fetchData = async () =>{
+    
+      const token = await getToken()
+      dispatch(fetchUser(token)) 
+      dispatch(getCartData(token))
+      dispatch(getOrdersData(token))
+    
   }
 
   useEffect(()=>{
+    
     dispatch(getProductsData())
+    fetchData()
 
-  },[dispatch])
+  },[])
  
   return (
     <div className='min-h-screen bg-background'>

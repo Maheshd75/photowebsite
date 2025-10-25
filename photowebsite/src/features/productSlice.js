@@ -8,6 +8,7 @@ const initialState = {
 export const getProductsData = createAsyncThunk('products/getProductsData',async()=>{
     const {data} = await api.get('/api/products/get')
     if(data.success){
+        
         return data.products
     }else{
         return null
